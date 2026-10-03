@@ -7,5 +7,5 @@ pages_build_output_dir = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "cloudboard"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "75943f56-300d-4f9e-9913-e167ce156d63"
 migrations_dir = "migrations"
