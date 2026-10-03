@@ -78,7 +78,7 @@ export async function createTicket(db: D1Database, input: NewTicket): Promise<Ti
   };
 }
 
-/** Columns a PATCH may touch — the whitelist keeps the dynamic SET clause injection-proof. */
+/** Columns a PATCH may touch - the whitelist keeps the dynamic SET clause injection-proof. */
 export interface TicketChanges {
   title?: string;
   description?: string;

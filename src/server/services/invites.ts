@@ -8,7 +8,7 @@ import { requireOwner } from './access';
 
 export async function createInvite(env: Env, actor: User, projectId: string, hours: InviteDurationHours): Promise<CreatedInvite> {
   await requireOwner(env, projectId, actor.id);
-  const token = randomToken(32); // 256 bits — the token itself is the credential
+  const token = randomToken(32); // 256 bits: token is the bearer secret
   const summary = await invites.createInvite(env.DB, {
     projectId,
     tokenHash: await sha256Hex(token),

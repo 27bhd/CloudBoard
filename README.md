@@ -9,7 +9,7 @@ CloudBoard is both a free, public hosted service for developers and small teams,
 
 ---
 
-## ⚡ Vision & Highlights
+## Vision & Highlights
 
 - **Zero Bloat**: No heavy UI runtimes, no bulky client frameworks, no bulky ORMs. Built with native Web APIs (`crypto.subtle`, signed HTTP-only cookies, standard `fetch`, and lightweight hyperscript).
 - **Fast at the Edge**: Instant loads and sub-second edge mutations powered by Cloudflare Pages and native SQLite on Cloudflare D1.
@@ -21,7 +21,7 @@ CloudBoard is both a free, public hosted service for developers and small teams,
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Runtime & Toolchain**: [Bun](https://bun.sh)
 - **Edge Platform**: [Cloudflare Pages](https://pages.cloudflare.com) & [Pages Functions](https://developers.cloudflare.com/pages/functions/)
@@ -32,7 +32,7 @@ CloudBoard is both a free, public hosted service for developers and small teams,
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### Prerequisites
 
@@ -59,7 +59,7 @@ Visit [http://localhost:8788](http://localhost:8788) in your browser.
 
 ---
 
-## 🔑 GitHub OAuth Configuration
+## GitHub OAuth Configuration
 
 To enable real GitHub sign-in locally or in production:
 
@@ -79,7 +79,7 @@ To enable real GitHub sign-in locally or in production:
 
 ---
 
-## ☁️ Cloudflare Deployment
+## Cloudflare Deployment
 
 ### 1. Create the D1 Database
 
@@ -119,12 +119,12 @@ bun run deploy
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome community contributions! Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for architectural guidelines, TypeScript standards, and pull request procedures.
 
 ---
 
-## 📄 License
+## License
 
 CloudBoard is open-source software licensed under the [MIT License](./LICENSE).

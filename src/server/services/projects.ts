@@ -36,7 +36,7 @@ export async function removeMember(env: Env, actor: User, projectId: string, use
   const role = await requireMember(env, projectId, actor.id);
   const target = await projects.getRole(env.DB, projectId, userId);
   if (!target) return;
-  if (target === 'owner') throw new HttpError(409, 'The owner cannot leave — delete the project instead');
+  if (target === 'owner') throw new HttpError(409, 'The owner cannot leave: delete the project instead');
   if (role !== 'owner' && userId !== actor.id) throw forbidden('Only the owner can remove other members');
   await projects.removeMember(env.DB, projectId, userId);
 }

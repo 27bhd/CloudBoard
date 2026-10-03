@@ -1,6 +1,6 @@
 /**
  * API contract shared by the edge handlers and the browser client.
- * Everything that crosses the network is described here — nothing else is imported across the boundary.
+ * Everything that crosses the network is described here; nothing else is imported across the boundary.
  */
 
 export const STATUSES = ['backlog', 'todo', 'in_progress', 'review', 'done'] as const;
@@ -117,7 +117,7 @@ export interface CreatedInvite extends InviteSummary {
 
 export interface MeResponse {
   user: User | null;
-  /** True only on localhost when DEV_AUTH=1 — enables the offline sign-in form. */
+  /** True only on localhost when DEV_AUTH=1, enables the offline sign-in form. */
   devAuth: boolean;
 }
 

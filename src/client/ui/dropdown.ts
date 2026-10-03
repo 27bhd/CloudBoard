@@ -45,7 +45,7 @@ export function dropdown(trigger: HTMLElement, { panel, align = 'right', onOpen 
 }
 
 /**
- * Two-step destructive button — replaces blocking confirm() dialogs.
+ * Two-step destructive button - replaces blocking confirm() dialogs.
  * First click arms it for 3 seconds; the second click commits.
  */
 export function confirmButton(label: string, armedLabel: string, onConfirm: () => void, className = 'btn btn-sm btn-danger'): HTMLButtonElement {

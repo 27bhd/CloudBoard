@@ -1,4 +1,4 @@
-/** A deliberately tiny hyperscript helper — the entire "framework" the UI needs. */
+/** Tiny hyperscript helper - the minimal DOM construction needed for the UI. */
 
 type Handlers = { [E in keyof HTMLElementEventMap]?: (event: HTMLElementEventMap[E]) => void };
 
@@ -30,7 +30,7 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, props?: Props<K
 export function append(parent: Node, children: Child[]): void {
   for (const child of children) {
     if (child === null || child === undefined || child === false) continue;
-    // Strings always become text nodes, never HTML — user content can't inject markup.
+    // Strings always become text nodes, never HTML - user content cannot inject markup.
     parent.appendChild(typeof child === 'string' || typeof child === 'number' ? document.createTextNode(String(child)) : child);
   }
 }

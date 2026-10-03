@@ -1,16 +1,16 @@
 import { existsSync } from 'node:fs';
 
-/** `bun run setup` — the only command a new contributor needs before `bun run dev`. */
+/** `bun run setup` - the only command a new contributor needs before `bun run dev`. */
 const run = async (cmd: string[]) => {
   const proc = Bun.spawn(cmd, { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' });
   if ((await proc.exited) !== 0) throw new Error(`Command failed: ${cmd.join(' ')}`);
 };
 
-console.log('→ Installing dependencies');
+console.log('-> Installing dependencies');
 await run(['bun', 'install']);
 
 if (existsSync('.dev.vars')) {
-  console.log('→ .dev.vars already exists, leaving it alone');
+  console.log('-> .dev.vars already exists, leaving it alone');
 } else {
   const secret = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url');
   await Bun.write(
@@ -25,10 +25,10 @@ if (existsSync('.dev.vars')) {
       '',
     ].join('\n'),
   );
-  console.log('→ Wrote .dev.vars with a fresh session secret and offline sign-in enabled');
+  console.log('-> Wrote .dev.vars with a fresh session secret and offline sign-in enabled');
 }
 
-console.log('→ Creating the local D1 database');
+console.log('-> Creating the local D1 database');
 await run(['bun', 'x', 'wrangler', 'd1', 'migrations', 'apply', 'DB', '--local']);
 
-console.log('\n✓ Ready. Run `bun run dev` and open http://localhost:8788');
+console.log('\nReady. Run `bun run dev` and open http://localhost:8788');

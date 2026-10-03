@@ -4,7 +4,7 @@ Thank you for your interest in contributing to **CloudBoard**! We take pride in 
 
 ---
 
-## 🏛️ Guiding Principles
+## Guiding Principles
 
 1. **"It just works."**: Every feature, script, and component must work seamlessly without fragile workarounds.
 2. **Zero Bloat**: No heavy external dependencies. We lean into Web standards (Web Crypto, native `fetch`, signed HTTP-only cookies, standard URL APIs).
@@ -13,7 +13,7 @@ Thank you for your interest in contributing to **CloudBoard**! We take pride in 
 
 ---
 
-## 🛠️ Local Development Setup
+## Local Development Setup
 
 We use **Bun** for fast package management, builds, and scripting:
 
@@ -33,15 +33,15 @@ The app will be available at `http://localhost:8788`.
 
 ### Available Scripts
 
-- `bun run setup` — Initializes dependencies, generates `.dev.vars`, and applies local D1 migrations.
-- `bun run dev` — Starts watchers for Tailwind, client bundle, and Cloudflare Wrangler Pages emulator.
-- `bun run build` — Compiles CSS, bundles the client, and prepares static assets in `dist/`.
-- `bun run typecheck` — Validates TypeScript across all workspaces (`server`, `client`, `scripts`).
-- `bun run db:reset` — Resets local SQLite database state and re-applies migrations cleanly.
+- `bun run setup` - Initializes dependencies, generates `.dev.vars`, and applies local D1 migrations.
+- `bun run dev` - Starts watchers for Tailwind, client bundle, and Cloudflare Wrangler Pages emulator.
+- `bun run build` - Compiles CSS, bundles the client, and prepares static assets in `dist/`.
+- `bun run typecheck` - Validates TypeScript across all workspaces (`server`, `client`, `scripts`).
+- `bun run db:reset` - Resets local SQLite database state and re-applies migrations cleanly.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 CloudBoard/
@@ -68,7 +68,7 @@ CloudBoard/
 
 ---
 
-## 📋 Pull Request Guidelines
+## Pull Request Guidelines
 
 1. **Run Typecheck**: Ensure `bun run typecheck` passes with zero errors before submitting.
 2. **Verify Build**: Ensure `bun run build` executes successfully.
@@ -78,6 +78,6 @@ CloudBoard/
 
 ---
 
-## 🔒 Security & Vulnerability Reporting
+## Security & Vulnerability Reporting
 
 If you discover a security vulnerability, please do not open a public issue. Contact the repository maintainers directly or use GitHub Security Advisories.

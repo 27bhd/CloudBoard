@@ -107,7 +107,7 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
     try {
       const saved = await api.archiveTicket(ticket.id);
       if (data) data.tickets = data.tickets.filter((existing) => existing.id !== ticket.id);
-      toast('Archived — find it under Archive');
+      toast('Archived: find it under Archive');
       renderBoard();
       return saved;
     } catch (error) {
@@ -478,6 +478,6 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
   return () => {
     document.removeEventListener('keydown', onKey);
     closeDrawer(false);
-    document.title = 'CloudBoard — It just works.';
+    document.title = 'CloudBoard - It just works.';
   };
 }

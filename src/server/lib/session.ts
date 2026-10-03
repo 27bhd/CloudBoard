@@ -74,7 +74,7 @@ export async function readOAuthCookie(env: Env, request: Request): Promise<{ sta
 
 export const clearOAuthCookie = (secure: boolean): string => serializeCookie(OAUTH_COOKIE, '', { maxAge: 0, secure });
 
-/** Only same-origin absolute paths — prevents open redirects through `?next=`. */
+/** Only same-origin absolute paths - prevents open redirects through `?next=`. */
 export function safeNext(value: string | null): string {
   if (value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\')) return value;
   return '/';

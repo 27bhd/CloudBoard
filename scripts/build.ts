@@ -28,5 +28,5 @@ export async function build({ minify }: { minify: boolean }): Promise<void> {
 
 if (import.meta.main) {
   await build({ minify: true });
-  console.log('✓ built to dist/');
+  console.log('Build complete: output in dist/');
 }

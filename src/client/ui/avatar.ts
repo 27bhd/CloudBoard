@@ -1,7 +1,7 @@
 import type { User } from '../../shared/types';
 import { h } from '../lib/dom';
 
-/** Earthy palette for initials fallbacks — deterministic per login so a person is always the same colour. */
+/** Palette for initials fallbacks: deterministic per login so a person is always the same colour. */
 const TONES = ['#b5532f', '#8a6d1f', '#4d7a52', '#2f6f78', '#5b5a9a', '#8a4f7e', '#a0463c', '#5a6b3a'] as const;
 
 function toneFor(login: string): string {

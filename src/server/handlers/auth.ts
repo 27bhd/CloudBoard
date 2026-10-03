@@ -55,7 +55,7 @@ export const githubCallback: Handler = async (ctx) => {
   const saved = await readOAuthCookie(ctx.env, ctx.request);
   if (!code || !state || !saved || saved.state !== state) throw badRequest('Sign-in expired. Please try again.');
 
-  // Direct token exchange with plain fetch — no OAuth library.
+  // Direct token exchange with plain fetch without external auth libraries.
   const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: { accept: 'application/json', 'content-type': 'application/json' },

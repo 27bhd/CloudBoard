@@ -31,7 +31,7 @@ function createForm(autofocus: boolean, large: boolean): HTMLFormElement {
     submit.disabled = true;
     try {
       const project = await api.createProject({ name });
-      navigate(`/p/${project.id}`); // straight into the board — no intermediate "created!" screen
+      navigate(`/p/${project.id}`); // straight into the board - no intermediate "created!" screen
     } catch (error) {
       submit.disabled = false;
       toast(error instanceof ApiError ? error.message : 'Could not create the project', 'error');
