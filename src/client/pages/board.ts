@@ -18,6 +18,7 @@ import { confirmButton, dropdown } from '../ui/dropdown';
 import { ticketDrawer } from '../ui/drawer';
 import { icon, priorityIcon, statusIcon } from '../ui/icons';
 import { inviteButton } from '../ui/invite';
+import { promptStatusComment } from '../ui/statusModal';
 
 const POSITION_STEP = 1024;
 const isTemp = (ticket: Ticket): boolean => ticket.id.startsWith('tmp-');
@@ -54,7 +55,12 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
       const column = sortColumn(data.tickets, patch.status);
       next.position = (column.at(-1)?.position ?? 0) + POSITION_STEP; // land at the bottom of the new column
     }
-    const optimistic: Ticket = { ...before, ...next, assigneeId: next.assigneeId === undefined ? before.assigneeId : next.assigneeId };
+    const optimistic: Ticket = {
+      ...before,
+      ...next,
+      assigneeId: next.assigneeId === undefined ? before.assigneeId : next.assigneeId,
+      latestComment: next.statusComment !== undefined ? next.statusComment : before.latestComment,
+    };
     apply(optimistic);
     try {
       const saved = await api.updateTicket(id, next);
@@ -90,6 +96,7 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
       createdAt: Date.now(),
       updatedAt: Date.now(),
       archivedAt: null,
+      latestComment: null,
     };
     data.tickets.push(temp);
     renderBoard();
@@ -226,6 +233,16 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
   function ticketCard(ticket: Ticket): HTMLElement {
     const assignee = ticket.assigneeId ? members().get(ticket.assigneeId) : undefined;
     const pending = isTemp(ticket);
+
+    const commentBlock = ticket.latestComment
+      ? h(
+          'div',
+          { class: 'mt-2 rounded-md border border-line bg-surface/75 px-2 py-1.5 text-xs text-ink-2 shadow-2xs' },
+          h('div', { class: 'mb-0.5 flex items-center gap-1 font-mono text-[10px] text-mute' }, icon('messageSquare', 11), 'Update note'),
+          h('p', { class: 'line-clamp-2 italic leading-tight text-ink/90' }, `“${ticket.latestComment}”`),
+        )
+      : null;
+
     const el = h(
       'article',
       {
@@ -241,6 +258,7 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
         ticket.priority !== 'none' ? priorityIcon(ticket.priority, 13) : null,
       ),
       h('p', { class: 'line-clamp-3 text-[0.9rem] leading-snug font-medium break-words' }, ticket.title),
+      commentBlock,
       assignee ? h('div', { class: 'mt-2.5 flex justify-end' }, avatar(assignee, 20)) : null,
     );
     el.addEventListener('click', () => openDrawer(ticket));
@@ -292,7 +310,23 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
     const next = target[index];
     const position = prev && next ? (prev.position + next.position) / 2 : prev ? prev.position + POSITION_STEP : next ? next.position / 2 : POSITION_STEP;
     if (ticket.status === status && position === ticket.position) return;
-    void updateTicket(id, { status, position });
+
+    if (ticket.status !== status) {
+      void (async () => {
+        const comment = await promptStatusComment({
+          ticketTitle: ticket.title,
+          fromStatus: ticket.status,
+          toStatus: status,
+        });
+        if (comment === null) {
+          renderBoard();
+          return;
+        }
+        void updateTicket(id, { status, position, statusComment: comment });
+      })();
+    } else {
+      void updateTicket(id, { status, position });
+    }
   }
 
   function quickAdd(status: Status): HTMLElement {
@@ -410,7 +444,12 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
         'div',
         { class: 'flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-raised', tabIndex: 0 },
         h('span', { class: 'w-20 shrink-0 font-mono text-[11px] text-mute' }, data ? ticketKey(data.project.key, ticket) : ''),
-        h('span', { class: 'min-w-0 flex-1 truncate font-medium' }, ticket.title),
+        h(
+          'div',
+          { class: 'min-w-0 flex-1' },
+          h('p', { class: 'truncate font-medium' }, ticket.title),
+          ticket.latestComment ? h('p', { class: 'truncate text-xs text-mute italic' }, `“${ticket.latestComment}”`) : null,
+        ),
         assignee ? h('span', { class: 'hidden items-center gap-2 text-sm text-ink-2 sm:flex' }, avatar(assignee, 20), assignee.login) : null,
         h('span', { class: 'hidden w-24 shrink-0 text-right text-sm text-mute md:block' }, timeAgo(ticket.archivedAt ?? ticket.updatedAt)),
         restore,

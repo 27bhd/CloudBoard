@@ -36,6 +36,7 @@ export interface TicketRow {
   created_at: number;
   updated_at: number;
   archived_at: number | null;
+  latest_comment?: string | null;
 }
 
 export interface EventRow {
@@ -43,6 +44,7 @@ export interface EventRow {
   type: TicketEventType;
   from_value: string | null;
   to_value: string | null;
+  comment?: string | null;
   created_at: number;
   actor_id: string | null;
   actor_login: string | null;
@@ -95,6 +97,7 @@ export const toTicket = (row: TicketRow): Ticket => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   archivedAt: row.archived_at,
+  latestComment: row.latest_comment ?? null,
 });
 
 export const toEvent = (row: EventRow): TicketEvent => ({
@@ -102,6 +105,7 @@ export const toEvent = (row: EventRow): TicketEvent => ({
   type: row.type,
   from: row.from_value,
   to: row.to_value,
+  comment: row.comment ?? null,
   createdAt: row.created_at,
   actor:
     row.actor_id && row.actor_login !== null

@@ -17,6 +17,7 @@ import { autosize, copyText, describeEvent, ticketKey, timeAgo } from '../lib/fo
 import { toast } from '../lib/toast';
 import { avatar } from './avatar';
 import { icon, priorityIcon, statusIcon } from './icons';
+import { promptStatusComment } from './statusModal';
 
 export interface DrawerDeps {
   project: Project;
@@ -74,20 +75,86 @@ export function ticketDrawer(deps: DrawerDeps): { el: HTMLElement; destroy: () =
   const prioritySlot = h('span', { class: 'grid size-5 place-items-center' });
   const assigneeSlot = h('span', { class: 'grid size-6 place-items-center' });
 
-  statusSelect.addEventListener('change', () => void commit({ status: statusSelect.value as Status }));
+  statusSelect.addEventListener('change', async () => {
+    const nextStatus = statusSelect.value as Status;
+    if (nextStatus === ticket.status) return;
+
+    const comment = await promptStatusComment({
+      ticketTitle: ticket.title,
+      fromStatus: ticket.status,
+      toStatus: nextStatus,
+    });
+
+    if (comment === null) {
+      statusSelect.value = ticket.status; // revert UI selection
+      return;
+    }
+
+    void commit({ status: nextStatus, statusComment: comment });
+  });
+
   prioritySelect.addEventListener('change', () => void commit({ priority: prioritySelect.value as Priority }));
   assigneeSelect.addEventListener('change', () => void commit({ assigneeId: assigneeSelect.value || null }));
 
-  // ── Description ──
+  // ── Description (Explicit Save & Cancel) ──
   const description = h('textarea', {
     class: 'input !h-auto min-h-28 resize-none !bg-transparent !py-3 leading-relaxed',
     placeholder: 'Add context, links, acceptance criteria…',
     maxLength: 10_000,
     attrs: { 'aria-label': 'Description' },
   });
-  description.addEventListener('input', () => autosize(description));
-  description.addEventListener('blur', () => {
-    if (description.value !== ticket.description) void commit({ description: description.value });
+
+  let isSavingDescription = false;
+  const descActions = h('div', { class: 'mt-2.5 hidden items-center justify-end gap-2' });
+  const descCancel = h('button', { class: 'btn btn-ghost btn-sm', type: 'button' }, 'Cancel');
+  const descSave = h('button', { class: 'btn btn-primary btn-sm px-4', type: 'button' }, 'Save');
+  descActions.append(descCancel, descSave);
+
+  const updateDescDirty = () => {
+    const dirty = description.value !== ticket.description;
+    descActions.classList.toggle('hidden', !dirty);
+    descActions.classList.toggle('flex', dirty);
+  };
+
+  description.addEventListener('input', () => {
+    autosize(description);
+    updateDescDirty();
+  });
+
+  descCancel.addEventListener('click', () => {
+    description.value = ticket.description;
+    autosize(description);
+    updateDescDirty();
+  });
+
+  const saveDescription = async () => {
+    if (description.value === ticket.description || isSavingDescription) return;
+    isSavingDescription = true;
+    descSave.disabled = true;
+    descCancel.disabled = true;
+    try {
+      await commit({ description: description.value });
+      updateDescDirty();
+    } finally {
+      isSavingDescription = false;
+      descSave.disabled = false;
+      descCancel.disabled = false;
+    }
+  };
+
+  descSave.addEventListener('click', () => void saveDescription());
+
+  description.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      void saveDescription();
+    } else if (event.key === 'Escape' && description.value !== ticket.description) {
+      event.preventDefault();
+      event.stopPropagation();
+      description.value = ticket.description;
+      autosize(description);
+      updateDescDirty();
+    }
   });
 
   // ── Archive actions & activity ──
@@ -124,11 +191,16 @@ export function ticketDrawer(deps: DrawerDeps): { el: HTMLElement; destroy: () =
 
   function sync(): void {
     if (document.activeElement !== title) title.value = ticket.title;
-    if (document.activeElement !== description) description.value = ticket.description;
+    if (document.activeElement !== description) {
+      description.value = ticket.description;
+      updateDescDirty();
+    }
     statusSelect.value = ticket.status;
     prioritySelect.value = ticket.priority;
     assigneeSelect.value = ticket.assigneeId ?? '';
-    for (const control of [title, description, statusSelect, prioritySelect, assigneeSelect]) control.disabled = locked();
+    for (const control of [title, description, statusSelect, prioritySelect, assigneeSelect, descSave, descCancel]) {
+      control.disabled = locked();
+    }
     replace(statusSlot, statusIcon(ticket.status, 16));
     replace(prioritySlot, priorityIcon(ticket.priority, 15));
     const assignee = deps.members.find((member) => member.id === ticket.assigneeId);
@@ -148,14 +220,34 @@ export function ticketDrawer(deps: DrawerDeps): { el: HTMLElement; destroy: () =
   function renderEvents(events: TicketEvent[]): void {
     replace(
       activity,
-      ...events.map((event) =>
-        h(
+      ...events.map((event) => {
+        const commentBox = event.comment
+          ? h(
+              'div',
+              { class: 'mt-2 rounded-lg border border-line bg-surface/80 p-2.5 text-xs text-ink-2 leading-relaxed' },
+              h('div', { class: 'mb-1 flex items-center gap-1 font-mono text-[10.5px] text-mute' }, icon('messageSquare', 12), 'Update note'),
+              h('p', { class: 'whitespace-pre-wrap break-words italic text-ink' }, event.comment),
+            )
+          : null;
+
+        return h(
           'li',
           { class: 'relative flex gap-3 pl-0' },
           event.actor ? avatar(event.actor, 20) : h('span', { class: 'size-5 shrink-0 rounded-full bg-line' }),
-          h('p', { class: 'min-w-0 text-sm text-ink-2' }, h('span', { class: 'font-semibold text-ink' }, event.actor?.name ?? 'Someone'), ` ${describeEvent(event)} `, h('span', { class: 'whitespace-nowrap text-mute', title: new Date(event.createdAt).toLocaleString() }, `· ${timeAgo(event.createdAt)}`)),
-        ),
-      ),
+          h(
+            'div',
+            { class: 'min-w-0 flex-1' },
+            h(
+              'p',
+              { class: 'min-w-0 text-sm text-ink-2' },
+              h('span', { class: 'font-semibold text-ink' }, event.actor?.name ?? 'Someone'),
+              ` ${describeEvent(event)} `,
+              h('span', { class: 'whitespace-nowrap text-mute', title: new Date(event.createdAt).toLocaleString() }, `· ${timeAgo(event.createdAt)}`),
+            ),
+            commentBox,
+          ),
+        );
+      }),
     );
   }
 
@@ -189,7 +281,7 @@ export function ticketDrawer(deps: DrawerDeps): { el: HTMLElement; destroy: () =
       { class: 'flex-1 space-y-7 overflow-y-auto px-6 py-6' },
       title,
       h('div', { class: 'space-y-0.5' }, row('Status', statusSlot, statusSelect), row('Priority', prioritySlot, prioritySelect), row('Assignee', assigneeSlot, assigneeSelect)),
-      h('div', {}, h('p', { class: 'eyebrow mb-2' }, 'Description'), description),
+      h('div', {}, h('p', { class: 'eyebrow mb-2' }, 'Description'), description, descActions),
       actions,
       h('div', {}, h('p', { class: 'eyebrow mb-3' }, 'Activity'), activity),
     ),

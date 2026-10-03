@@ -4,14 +4,20 @@ import { type EventRow, type TicketRow, toEvent, toTicket } from './rows';
 
 const POSITION_STEP = 1024;
 
+const TICKET_SELECT = `
+  SELECT t.*,
+         (SELECT comment FROM ticket_events WHERE ticket_id = t.id AND type = 'status' AND to_value = t.status AND comment IS NOT NULL AND TRIM(comment) != '' ORDER BY created_at DESC, rowid DESC LIMIT 1) AS latest_comment
+  FROM tickets t
+`;
+
 export async function getTicket(db: D1Database, id: string): Promise<Ticket | null> {
-  const row = await db.prepare('SELECT * FROM tickets WHERE id = ?').bind(id).first<TicketRow>();
+  const row = await db.prepare(`${TICKET_SELECT} WHERE t.id = ?`).bind(id).first<TicketRow>();
   return row ? toTicket(row) : null;
 }
 
 export async function listActive(db: D1Database, projectId: string): Promise<Ticket[]> {
   const { results } = await db
-    .prepare('SELECT * FROM tickets WHERE project_id = ? AND archived_at IS NULL ORDER BY position')
+    .prepare(`${TICKET_SELECT} WHERE t.project_id = ? AND t.archived_at IS NULL ORDER BY t.position`)
     .bind(projectId)
     .all<TicketRow>();
   return results.map(toTicket);
@@ -19,7 +25,7 @@ export async function listActive(db: D1Database, projectId: string): Promise<Tic
 
 export async function listArchived(db: D1Database, projectId: string): Promise<Ticket[]> {
   const { results } = await db
-    .prepare('SELECT * FROM tickets WHERE project_id = ? AND archived_at IS NOT NULL ORDER BY archived_at DESC LIMIT 500')
+    .prepare(`${TICKET_SELECT} WHERE t.project_id = ? AND t.archived_at IS NOT NULL ORDER BY t.archived_at DESC LIMIT 500`)
     .bind(projectId)
     .all<TicketRow>();
   return results.map(toTicket);
@@ -75,6 +81,7 @@ export async function createTicket(db: D1Database, input: NewTicket): Promise<Ti
     createdAt: now,
     updatedAt: now,
     archivedAt: null,
+    latestComment: null,
   };
 }
 
@@ -95,12 +102,13 @@ export interface EventInput {
   type: TicketEventType;
   from: string | null;
   to: string | null;
+  comment?: string | null;
 }
 
 export function eventStatement(db: D1Database, event: EventInput): D1PreparedStatement {
   return db
-    .prepare('INSERT INTO ticket_events (id, ticket_id, actor_id, type, from_value, to_value, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .bind(shortId(), event.ticketId, event.actorId, event.type, event.from, event.to, Date.now());
+    .prepare('INSERT INTO ticket_events (id, ticket_id, actor_id, type, from_value, to_value, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(shortId(), event.ticketId, event.actorId, event.type, event.from, event.to, event.comment ?? null, Date.now());
 }
 
 export async function applyChanges(db: D1Database, ticketId: string, changes: TicketChanges, events: EventInput[]): Promise<void> {
@@ -132,7 +140,7 @@ export async function archiveDone(db: D1Database, projectId: string, actorId: st
 export async function listEvents(db: D1Database, ticketId: string): Promise<TicketEvent[]> {
   const { results } = await db
     .prepare(
-      `SELECT e.id, e.type, e.from_value, e.to_value, e.created_at, e.actor_id,
+      `SELECT e.id, e.type, e.from_value, e.to_value, e.comment, e.created_at, e.actor_id,
               u.login AS actor_login, u.name AS actor_name, u.avatar_url AS actor_avatar
        FROM ticket_events e LEFT JOIN users u ON u.id = e.actor_id
        WHERE e.ticket_id = ? ORDER BY e.created_at, e.rowid`,

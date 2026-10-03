@@ -81,6 +81,7 @@ export interface Ticket {
   createdAt: number;
   updatedAt: number;
   archivedAt: number | null;
+  latestComment: string | null;
 }
 
 export type TicketEventType =
@@ -99,6 +100,7 @@ export interface TicketEvent {
   actor: User | null;
   from: string | null;
   to: string | null;
+  comment: string | null;
   createdAt: number;
 }
 
@@ -153,6 +155,7 @@ export interface UpdateTicketBody {
   priority?: Priority;
   assigneeId?: string | null;
   position?: number;
+  statusComment?: string;
 }
 
 export interface TicketDetailResponse {

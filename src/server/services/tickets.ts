@@ -43,8 +43,8 @@ export async function updateTicket(env: Env, actor: User, ticketId: string, patc
 
   const changes: tickets.TicketChanges = {};
   const events: tickets.EventInput[] = [];
-  const log = (type: tickets.EventInput['type'], from: string | null, to: string | null) =>
-    events.push({ ticketId, actorId: actor.id, type, from, to });
+  const log = (type: tickets.EventInput['type'], from: string | null, to: string | null, comment?: string | null) =>
+    events.push({ ticketId, actorId: actor.id, type, from, to, comment: comment ?? null });
 
   if (patch.title !== undefined && patch.title !== ticket.title) {
     changes.title = patch.title;
@@ -55,8 +55,10 @@ export async function updateTicket(env: Env, actor: User, ticketId: string, patc
     log('description', null, null); // bodies can be large; the log only records that it changed
   }
   if (patch.status !== undefined && patch.status !== ticket.status) {
+    const comment = patch.statusComment?.trim();
+    if (!comment) throw badRequest('A comment is required when changing ticket status');
     changes.status = patch.status;
-    log('status', ticket.status, patch.status);
+    log('status', ticket.status, patch.status, comment);
   }
   if (patch.priority !== undefined && patch.priority !== ticket.priority) {
     changes.priority = patch.priority;

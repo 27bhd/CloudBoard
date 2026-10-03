@@ -23,6 +23,7 @@ export const update: Handler = async (ctx) => {
     priority: optionalEnum(body, 'priority', PRIORITIES),
     assigneeId: optionalNullableString(body, 'assigneeId'),
     position: optionalNumber(body, 'position'),
+    statusComment: optionalString(body, 'statusComment', 2000)?.trim(),
   };
   return json(await tickets.updateTicket(ctx.env, requireUser(ctx), ticketId(ctx), patch));
 };
