@@ -1,0 +1,11 @@
+name = "cloudboard"
+compatibility_date = "2025-06-01"
+pages_build_output_dir = "./dist"
+
+# Replace database_id with the id from `wrangler d1 create cloudboard` before deploying.
+# Local development works with the placeholder as-is.
+[[d1_databases]]
+binding = "DB"
+database_name = "cloudboard"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

@@ -1,0 +1,26 @@
+{
+  "name": "cloudboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal, edge-native project and ticket tracking. It just works.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "setup": "bun run scripts/setup.ts",
+    "dev": "bun run scripts/dev.ts",
+    "build": "bun run scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.server.json && tsc -p tsconfig.client.json && tsc -p tsconfig.scripts.json",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:reset": "bun run scripts/reset-db.ts",
+    "deploy": "bun run build && wrangler pages deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261003.1",
+    "@tailwindcss/cli": "^4.3.3",
+    "@types/bun": "^1.4.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.147.0"
+  }
+}
