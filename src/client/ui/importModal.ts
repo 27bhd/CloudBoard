@@ -24,6 +24,23 @@ const SAMPLE_JSON = JSON.stringify(
   2,
 );
 
+const AI_PROMPT = `Analyze our project requirements or codebase and generate a list of actionable tasks. Output ONLY a valid JSON array matching this exact schema:
+
+[
+  {
+    "title": "Clear, concise task title (required, max 200 chars)",
+    "description": "Implementation details, context, or acceptance criteria",
+    "status": "todo",
+    "priority": "high"
+  }
+]
+
+Allowed values:
+- status: "backlog", "todo", "in_progress", "review", "done" (default: "backlog")
+- priority: "none", "low", "medium", "high", "urgent" (default: "none")
+
+Return raw JSON only without Markdown code blocks or explanation.`;
+
 export interface ImportModalOptions {
   projectId: string;
   onImported: (tickets: Ticket[]) => void;
@@ -135,6 +152,12 @@ export function openImportModal(options: ImportModalOptions): void {
   const uploadFileBtn = h('button', { class: 'btn btn-ghost btn-sm text-xs', type: 'button' }, icon('upload', 13), 'Upload file');
   uploadFileBtn.addEventListener('click', () => fileInput.click());
 
+  const copyPromptBtn = h('button', { class: 'btn btn-ghost btn-sm text-xs', type: 'button' }, icon('copy', 13), 'Copy AI prompt');
+  copyPromptBtn.addEventListener('click', async () => {
+    const ok = await copyText(AI_PROMPT);
+    toast(ok ? 'AI prompt copied to clipboard' : 'Could not copy prompt', ok ? 'info' : 'error');
+  });
+
   const copyTemplateBtn = h('button', { class: 'btn btn-ghost btn-sm text-xs', type: 'button' }, icon('copy', 13), 'Copy template');
   copyTemplateBtn.addEventListener('click', async () => {
     const ok = await copyText(SAMPLE_JSON);
@@ -191,9 +214,9 @@ export function openImportModal(options: ImportModalOptions): void {
       {},
       h(
         'div',
-        { class: 'mb-2 flex items-center justify-between' },
+        { class: 'mb-2 flex flex-wrap items-center justify-between gap-y-2' },
         h('span', { class: 'eyebrow' }, 'JSON payload'),
-        h('div', { class: 'flex items-center gap-1.5' }, copyTemplateBtn, uploadFileBtn, clearBtn),
+        h('div', { class: 'flex flex-wrap items-center gap-1.5' }, copyPromptBtn, copyTemplateBtn, uploadFileBtn, clearBtn),
       ),
       textarea,
     ),
