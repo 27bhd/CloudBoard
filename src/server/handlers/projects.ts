@@ -13,7 +13,17 @@ import { requireUser, type Handler } from '../context';
 import * as projectsDb from '../db/projects';
 import * as ticketsDb from '../db/tickets';
 import * as usersDb from '../db/users';
-import { badRequest, json, notFound, optionalEnum, optionalNullableString, optionalString, readJson, requiredString } from '../lib/http';
+import {
+  badRequest,
+  json,
+  notFound,
+  optionalEnum,
+  optionalNullableString,
+  optionalString,
+  readJson,
+  readJsonValue,
+  requiredString,
+} from '../lib/http';
 import { requireMember } from '../services/access';
 import * as invites from '../services/invites';
 import * as projects from '../services/projects';
@@ -100,8 +110,8 @@ export const createTicket: Handler = async (ctx) => {
 
 export const importTickets: Handler = async (ctx) => {
   const user = requireUser(ctx);
-  const body = await readJson(ctx.request);
-  const rawList = Array.isArray(body) ? body : (body as { tickets?: unknown })?.tickets;
+  const body = await readJsonValue(ctx.request);
+  const rawList = Array.isArray(body) ? body : (body as { tickets?: unknown } | null | undefined)?.tickets;
   if (!Array.isArray(rawList)) throw badRequest('Expected a JSON array of tickets');
   const created = await tickets.bulkImportTickets(ctx.env, user, param(ctx, 'id'), rawList);
   return json({ count: created.length, tickets: created }, 201);

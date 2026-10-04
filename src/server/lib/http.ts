@@ -36,6 +36,14 @@ export function redirect(location: string, headers?: HeadersInit): Response {
 
 export type JsonObject = Record<string, unknown>;
 
+export async function readJsonValue(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    throw badRequest('Invalid JSON payload');
+  }
+}
+
 export async function readJson(request: Request): Promise<JsonObject> {
   try {
     const body: unknown = await request.json();
