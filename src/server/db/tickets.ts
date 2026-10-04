@@ -143,7 +143,7 @@ export async function listEvents(db: D1Database, ticketId: string): Promise<Tick
       `SELECT e.id, e.type, e.from_value, e.to_value, e.comment, e.created_at, e.actor_id,
               u.login AS actor_login, u.name AS actor_name, u.avatar_url AS actor_avatar
        FROM ticket_events e LEFT JOIN users u ON u.id = e.actor_id
-       WHERE e.ticket_id = ? ORDER BY e.created_at, e.rowid`,
+       WHERE e.ticket_id = ? ORDER BY e.created_at DESC, e.rowid DESC`,
     )
     .bind(ticketId)
     .all<EventRow>();

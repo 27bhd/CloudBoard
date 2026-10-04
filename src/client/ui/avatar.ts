@@ -31,6 +31,7 @@ export function avatar(user: Pick<User, 'login' | 'name' | 'avatarUrl'>, size = 
     width: size,
     height: size,
   });
+  image.style.cssText = `width:${size}px;height:${size}px;min-width:${size}px;min-height:${size}px;max-width:${size}px;max-height:${size}px`;
   image.addEventListener('error', () => image.replaceWith(initials), { once: true });
   return image;
 }

@@ -230,10 +230,14 @@ export function ticketDrawer(deps: DrawerDeps): { el: HTMLElement; destroy: () =
             )
           : null;
 
+        const avatarNode = event.actor
+          ? avatar(event.actor, 20)
+          : h('span', { class: 'inline-block size-5 rounded-full bg-line' });
+
         return h(
           'li',
-          { class: 'relative flex gap-3 pl-0' },
-          event.actor ? avatar(event.actor, 20) : h('span', { class: 'size-5 shrink-0 rounded-full bg-line' }),
+          { class: 'relative flex items-start gap-3 pl-0' },
+          h('div', { class: 'mt-0.5 shrink-0' }, avatarNode),
           h(
             'div',
             { class: 'min-w-0 flex-1' },
