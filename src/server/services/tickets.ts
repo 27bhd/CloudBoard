@@ -1,4 +1,4 @@
-import type { CreateTicketBody, Ticket, UpdateTicketBody, User } from '../../shared/types';
+import { LIMITS, PRIORITIES, STATUSES, type BulkImportTicketItem, type CreateTicketBody, type Ticket, type UpdateTicketBody, type User } from '../../shared/types';
 import * as projects from '../db/projects';
 import * as tickets from '../db/tickets';
 import * as users from '../db/users';
@@ -105,4 +105,44 @@ export async function restoreTicket(env: Env, actor: User, ticketId: string): Pr
   const updated = await tickets.getTicket(env.DB, ticketId);
   if (!updated) throw notFound('Ticket not found');
   return updated;
+}
+
+export async function bulkImportTickets(
+  env: Env,
+  actor: User,
+  projectId: string,
+  rawItems: unknown[],
+): Promise<Ticket[]> {
+  await requireMember(env, projectId, actor.id);
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    throw badRequest('Please provide at least one ticket to import');
+  }
+  if (rawItems.length > 200) {
+    throw badRequest('Maximum 200 tickets per import batch');
+  }
+
+  const items: BulkImportTicketItem[] = rawItems.map((raw, index) => {
+    if (!raw || typeof raw !== 'object') {
+      throw badRequest(`Item #${index + 1} is not a valid object`);
+    }
+    const item = raw as Record<string, unknown>;
+    const title = typeof item.title === 'string' ? item.title.trim() : '';
+    if (!title) {
+      throw badRequest(`Item #${index + 1} is missing a title`);
+    }
+    if (title.length > LIMITS.ticketTitle) {
+      throw badRequest(`Item #${index + 1} title exceeds ${LIMITS.ticketTitle} characters`);
+    }
+    const description = typeof item.description === 'string' ? item.description.slice(0, LIMITS.ticketDescription) : '';
+    const status = typeof item.status === 'string' && (STATUSES as readonly string[]).includes(item.status)
+      ? (item.status as (typeof STATUSES)[number])
+      : 'backlog';
+    const priority = typeof item.priority === 'string' && (PRIORITIES as readonly string[]).includes(item.priority)
+      ? (item.priority as (typeof PRIORITIES)[number])
+      : 'none';
+
+    return { title, description, status, priority };
+  });
+
+  return tickets.createTicketsBulk(env.DB, projectId, actor.id, items);
 }

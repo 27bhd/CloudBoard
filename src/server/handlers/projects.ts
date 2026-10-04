@@ -98,6 +98,15 @@ export const createTicket: Handler = async (ctx) => {
   return json(ticket, 201);
 };
 
+export const importTickets: Handler = async (ctx) => {
+  const user = requireUser(ctx);
+  const body = await readJson(ctx.request);
+  const rawList = Array.isArray(body) ? body : (body as { tickets?: unknown })?.tickets;
+  if (!Array.isArray(rawList)) throw badRequest('Expected a JSON array of tickets');
+  const created = await tickets.bulkImportTickets(ctx.env, user, param(ctx, 'id'), rawList);
+  return json({ count: created.length, tickets: created }, 201);
+};
+
 // ---- Invites (owner-only; token is returned exactly once) ----
 
 export const listInvites: Handler = async (ctx) =>

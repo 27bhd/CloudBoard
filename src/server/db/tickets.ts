@@ -1,4 +1,4 @@
-import type { Priority, Status, Ticket, TicketEvent, TicketEventType } from '../../shared/types';
+import type { BulkImportTicketItem, Priority, Status, Ticket, TicketEvent, TicketEventType } from '../../shared/types';
 import { shortId } from '../lib/crypto';
 import { type EventRow, type TicketRow, toEvent, toTicket } from './rows';
 
@@ -148,4 +148,83 @@ export async function listEvents(db: D1Database, ticketId: string): Promise<Tick
     .bind(ticketId)
     .all<EventRow>();
   return results.map(toEvent);
+}
+
+export async function createTicketsBulk(
+  db: D1Database,
+  projectId: string,
+  creatorId: string,
+  items: BulkImportTicketItem[],
+): Promise<Ticket[]> {
+  if (items.length === 0) return [];
+
+  const seq = await db
+    .prepare('UPDATE projects SET ticket_seq = ticket_seq + ? WHERE id = ? RETURNING ticket_seq')
+    .bind(items.length, projectId)
+    .first<{ ticket_seq: number }>();
+  if (!seq) throw new Error('Project vanished while importing tickets');
+
+  const startSeq = seq.ticket_seq - items.length + 1;
+
+  const { results: maxPositions } = await db
+    .prepare('SELECT status, MAX(position) AS max FROM tickets WHERE project_id = ? AND archived_at IS NULL GROUP BY status')
+    .bind(projectId)
+    .all<{ status: Status; max: number | null }>();
+
+  const currentPositions: Record<Status, number> = {
+    backlog: 0,
+    todo: 0,
+    in_progress: 0,
+    review: 0,
+    done: 0,
+  };
+  for (const row of maxPositions) {
+    if (row.status && row.max !== null) currentPositions[row.status] = row.max;
+  }
+
+  const now = Date.now();
+  const created: Ticket[] = [];
+  const statements: D1PreparedStatement[] = [];
+
+  for (const [i, item] of items.entries()) {
+    const status: Status = item.status ?? 'backlog';
+    const priority: Priority = item.priority ?? 'none';
+    currentPositions[status] += POSITION_STEP;
+    const position = currentPositions[status];
+    const id = shortId();
+    const number = startSeq + i;
+    const desc = item.description ?? '';
+
+    created.push({
+      id,
+      projectId,
+      number,
+      title: item.title,
+      description: desc,
+      status,
+      priority,
+      assigneeId: null,
+      creatorId,
+      position,
+      createdAt: now + i,
+      updatedAt: now + i,
+      archivedAt: null,
+      latestComment: null,
+    });
+
+    statements.push(
+      db.prepare(
+        `INSERT INTO tickets (id, project_id, number, title, description, status, priority, assignee_id, creator_id, position, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(id, projectId, number, item.title, desc, status, priority, null, creatorId, position, now + i, now + i),
+      eventStatement(db, { ticketId: id, actorId: creatorId, type: 'created', from: null, to: status }),
+    );
+  }
+
+  const CHUNK_SIZE = 50;
+  for (let i = 0; i < statements.length; i += CHUNK_SIZE) {
+    await db.batch(statements.slice(i, i + CHUNK_SIZE));
+  }
+
+  return created;
 }

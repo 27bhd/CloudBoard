@@ -18,6 +18,7 @@ import { confirmButton, dropdown } from '../ui/dropdown';
 import { ticketDrawer } from '../ui/drawer';
 import { icon, priorityIcon, statusIcon } from '../ui/icons';
 import { inviteButton } from '../ui/invite';
+import { openImportModal } from '../ui/importModal';
 import { promptStatusComment } from '../ui/statusModal';
 
 const POSITION_STEP = 1024;
@@ -207,6 +208,18 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
         ),
     });
 
+    const importBtn = h('button', { class: 'btn btn-sm', type: 'button', title: 'Import tickets from JSON' }, icon('upload', 14), 'Import');
+    importBtn.addEventListener('click', () => {
+      openImportModal({
+        projectId,
+        onImported: (newTickets) => {
+          if (!data) return;
+          data.tickets.push(...newTickets);
+          renderBoard();
+        },
+      });
+    });
+
     replace(
       header,
       h('a', { href: '/', class: 'mb-4 inline-flex items-center gap-1.5 text-sm text-mute transition-colors hover:text-ink' }, icon('arrowLeft', 14), 'Projects'),
@@ -219,7 +232,7 @@ export function boardPage(outlet: HTMLElement, params: Record<string, string>, v
           h('div', { class: 'flex items-center gap-3' }, h('h1', { class: 'truncate font-display text-[2.5rem] leading-none tracking-tight' }, project.name), h('span', { class: 'key-chip mt-1.5' }, project.key)),
           project.description ? h('p', { class: 'mt-2 max-w-2xl text-sm text-ink-2' }, project.description) : null,
         ),
-        h('div', { class: 'flex items-center gap-3' }, avatarStack(data.members), role === 'owner' ? inviteButton(projectId) : null, menu),
+        h('div', { class: 'flex items-center gap-3' }, avatarStack(data.members), importBtn, role === 'owner' ? inviteButton(projectId) : null, menu),
       ),
       h(
         'nav',

@@ -163,6 +163,22 @@ export interface TicketDetailResponse {
   events: TicketEvent[];
 }
 
+export interface BulkImportTicketItem {
+  title: string;
+  description?: string;
+  status?: Status;
+  priority?: Priority;
+}
+
+export interface BulkImportBody {
+  tickets: BulkImportTicketItem[];
+}
+
+export interface BulkImportResponse {
+  count: number;
+  tickets: Ticket[];
+}
+
 export interface CreateInviteBody {
   hours: InviteDurationHours;
 }

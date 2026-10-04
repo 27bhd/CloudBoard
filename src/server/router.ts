@@ -39,6 +39,7 @@ const routes: Route[] = [
   route('GET', '/api/projects/:id/archive', projectHandlers.archive),
   route('POST', '/api/projects/:id/archive-done', projectHandlers.archiveDone),
   route('POST', '/api/projects/:id/tickets', projectHandlers.createTicket),
+  route('POST', '/api/projects/:id/tickets/import', projectHandlers.importTickets),
   route('GET', '/api/projects/:id/invites', projectHandlers.listInvites),
   route('POST', '/api/projects/:id/invites', projectHandlers.createInvite),
   route('DELETE', '/api/projects/:id/invites/:inviteId', projectHandlers.revokeInvite),

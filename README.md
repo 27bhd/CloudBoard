@@ -14,6 +14,9 @@ CloudBoard is both a free, public hosted service for developers and small teams,
 - **Zero Bloat**: No heavy UI runtimes, no bulky client frameworks, no bulky ORMs. Built with native Web APIs (`crypto.subtle`, signed HTTP-only cookies, standard `fetch`, and lightweight hyperscript).
 - **Fast at the Edge**: Instant loads and sub-second edge mutations powered by Cloudflare Pages and native SQLite on Cloudflare D1.
 - **Crafted Minimalist UI**: High visual polish with custom typography (Gloock, Schibsted Grotesk, Martian Mono), dark mode, smooth drag-and-drop, and optimistic UI updates.
+- **Mandatory Status Update Notes**: Whenever ticket status changes (via board drag-and-drop or details drawer), team members provide a context note displayed on cards and in the reverse-chronological activity timeline.
+- **Bulk JSON Task Import**: Easily migrate tickets from other issue trackers or batch-import tasks using a clean JSON format or file upload with live validation.
+- **Controlled Ticket Edits**: Explicit Save and Cancel controls with keyboard shortcuts (`Ctrl+Enter` / `Cmd+Enter`) to prevent database chatter.
 - **Native GitHub Authentication**: Passwordless sign-in via direct OAuth token exchange (no third-party auth provider).
 - **Time-Limited Expiring Invites**: Cryptographically secure invite tokens with 24h, 48h, or 7d expiration.
 - **Audit History**: Transparent event tracking for all ticket updates and lifecycle states.
@@ -115,6 +118,36 @@ npx wrangler pages secret put GITHUB_CLIENT_SECRET
 
 ```bash
 bun run deploy
+```
+
+---
+
+## Bulk Ticket Migration (JSON)
+
+Developers migrating from existing issue trackers or batch-importing tasks can use the **Import** button in the project header or POST directly to the API:
+
+```bash
+POST /api/projects/:id/tickets/import
+Content-Type: application/json
+```
+
+Payload schema (JSON array of up to 200 items):
+
+```json
+[
+  {
+    "title": "Configure staging deployment pipeline",
+    "description": "Run automated smoke tests before promotion to production.",
+    "status": "todo",
+    "priority": "high"
+  },
+  {
+    "title": "Document environment variables",
+    "description": "List all required production secrets in developer guide.",
+    "status": "backlog",
+    "priority": "medium"
+  }
+]
 ```
 
 ---

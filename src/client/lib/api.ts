@@ -1,6 +1,8 @@
 import type {
   AcceptInviteResponse,
   BoardResponse,
+  BulkImportResponse,
+  BulkImportTicketItem,
   CreateInviteBody,
   CreateProjectBody,
   CreateTicketBody,
@@ -59,6 +61,8 @@ export const api = {
   archiveDone: (id: string) => request<{ archived: number }>('POST', `/api/projects/${id}/archive-done`),
 
   createTicket: (projectId: string, body: CreateTicketBody) => request<Ticket>('POST', `/api/projects/${projectId}/tickets`, body),
+  importTickets: (projectId: string, tickets: BulkImportTicketItem[]) =>
+    request<BulkImportResponse>('POST', `/api/projects/${projectId}/tickets/import`, tickets),
   ticket: (id: string) => request<TicketDetailResponse>('GET', `/api/tickets/${id}`),
   updateTicket: (id: string, body: UpdateTicketBody) => request<Ticket>('PATCH', `/api/tickets/${id}`, body),
   archiveTicket: (id: string) => request<Ticket>('POST', `/api/tickets/${id}/archive`),
